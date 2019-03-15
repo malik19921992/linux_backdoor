@@ -1,4 +1,5 @@
 # linux_backdoor<br/>
+i hope from anyone who can ,to help me to upgrade my code<br/>
 linux backdoor , have some fanctionalites , its undeletble , i am still working to hide it and gave it root previlages<br/>
 after you download it you do this commands:<br/>
 nano NGROK_0<br/>
